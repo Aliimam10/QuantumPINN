@@ -21,10 +21,13 @@ def report(name: str, solution, energy_fn, wavefunction_fn) -> None:
     for state, energy in enumerate(solution.energies):
         reference_energy = energy_fn(state)
         reference_wavefunction = wavefunction_fn(solution.x, state)
+        wavefunction_error = sign_invariant_l2(
+            solution.wavefunctions[state], reference_wavefunction, solution.x
+        )
         print(
             f"{state:>5d}  {reference_energy:>11.7f}  {energy:>13.7f}  "
             f"{relative_energy_error(energy, reference_energy):>16.3e}  "
-            f"{sign_invariant_l2(solution.wavefunctions[state], reference_wavefunction, solution.x):>15.3e}"
+            f"{wavefunction_error:>15.3e}"
         )
 
 

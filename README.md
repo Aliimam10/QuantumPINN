@@ -20,7 +20,7 @@ for the scientific scope, acceptance criteria, and delivery plan.
 
 ## Current status
 
-The numerical benchmark layer is implemented:
+The numerical benchmark and forward-PINN layers are implemented:
 
 - dimensionless quantum units by default (`hbar = m = 1`);
 - reusable harmonic, infinite-well, finite-well, barrier, quartic, and double-well
@@ -29,9 +29,14 @@ The numerical benchmark layer is implemented:
 - analytical infinite-well and harmonic-oscillator reference states;
 - sign-invariant wavefunction and energy error metrics;
 - forward-solver tests and a benchmark script.
+- a smooth PyTorch wavefunction network with a trainable energy;
+- exact finite-domain Dirichlet boundary conditions;
+- Schrödinger residual, normalisation, and excited-state orthogonality losses;
+- grid-normalised physics residuals that prevent collapse to the trivial zero state;
+- deterministic Adam plus L-BFGS training and a forward-PINN experiment script.
 
-The PINN and inverse-potential stages are the next milestones. They will use PyTorch,
-which is intentionally kept as an optional dependency until that stage is implemented.
+PyTorch remains an optional dependency so the numerical reference solver can be used
+without installing the ML stack. The inverse-potential stage is the next milestone.
 
 ## Quick start
 
@@ -47,6 +52,13 @@ For later PINN development:
 
 ```bash
 python -m pip install -e '.[ml,dev]'
+```
+
+Train a ground-state PINN after installing the ML extra:
+
+```bash
+python experiments/train_forward_pinn.py --system well --state 0
+python experiments/train_forward_pinn.py --system oscillator --state 0
 ```
 
 ## Repository layout

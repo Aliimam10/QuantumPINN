@@ -18,7 +18,10 @@ def sign_invariant_l2(predicted: ArrayLike, reference: ArrayLike, x: ArrayLike) 
     predicted_values = np.asarray(predicted, dtype=float)
     reference_values = np.asarray(reference, dtype=float)
     coordinates = np.asarray(x, dtype=float)
-    if predicted_values.shape != reference_values.shape or predicted_values.shape != coordinates.shape:
+    if (
+        predicted_values.shape != reference_values.shape
+        or predicted_values.shape != coordinates.shape
+    ):
         raise ValueError("predicted, reference, and x must have the same shape")
 
     reference_norm = np.sqrt(np.trapezoid(reference_values**2, x=coordinates))
