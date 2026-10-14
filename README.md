@@ -36,10 +36,10 @@ The numerical benchmark and forward-PINN layers are implemented:
 - differentiable state deflation that prevents excited states collapsing to lower modes;
 - deterministic Adam plus L-BFGS training and a forward-PINN experiment script.
 
-The forward evaluation suite is also implemented, including three-seed comparisons,
-machine-readable result tables, and figures. PyTorch remains optional so the numerical
-reference solver can be used without installing the ML stack. The inverse-potential
-stage is the next milestone.
+The forward evaluation and parametric inverse-potential suites are also implemented,
+including three-seed comparisons, machine-readable result tables, and figures. PyTorch
+remains optional so the numerical reference solver can be used without installing the
+ML stack.
 
 ## Quick start
 
@@ -93,6 +93,27 @@ Additional state-by-state figures:
 - [infinite square well](figures/infinite_well_states.png)
 - [harmonic oscillator](figures/harmonic_oscillator_states.png)
 - [symmetric double well](figures/double_well_states.png)
+
+## Inverse-potential results
+
+The inverse experiment hides the coefficients of
+`V(x) = 0.5*x**2 + 0.05*x**4`, fixes the energy gauge with `V(0) = 0`, and reconstructs
+the potential from 25 sparse signed-wavefunction samples and the absolute energy of each
+of the first two states. It repeats the fit across three seeds at 0%, 0.5%, and 2%
+synthetic observation noise.
+
+Median held-out potential errors are approximately `7.0e-4`, `1.6e-2`, and `8.9e-2`,
+respectively. The increasing seed spread at 2% noise illustrates the inverse problem's
+sensitivity to imperfect measurements. Per-run and aggregate tables are in
+[`results/inverse`](results/inverse).
+
+```bash
+python experiments/inverse_potential.py
+```
+
+![True and reconstructed hidden potentials](figures/inverse_potential_reconstruction.png)
+
+![Potential coefficient sensitivity to noise](figures/inverse_noise_sensitivity.png)
 
 ## Repository layout
 

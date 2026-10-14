@@ -99,7 +99,7 @@ reference.
 - PINN comparison against the converged finite-difference reference.
 - A parameter sweep showing how splitting changes with barrier strength or well spacing.
 
-### Milestone 4: inverse problem
+### Milestone 4: inverse problem (implemented)
 
 - Recover harmonic/quartic coefficients from sparse synthetic observations.
 - Compare reconstructed and true potentials on held-out grid points.

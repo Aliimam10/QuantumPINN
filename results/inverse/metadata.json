@@ -1,0 +1,35 @@
+{
+  "adam_epochs": 3000,
+  "collocation_points": 256,
+  "domain": [
+    -5.0,
+    5.0
+  ],
+  "gauge": "V(0) = 0",
+  "lbfgs_steps": 300,
+  "noise_levels": [
+    0.0,
+    0.005,
+    0.02
+  ],
+  "numpy_version": "2.5.4",
+  "observation_domain": [
+    -3.5,
+    3.5
+  ],
+  "observation_kind": "wavefunction",
+  "observations_per_state": 25,
+  "reference_points": 3000,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "states": 2,
+  "torch_version": "2.14.1",
+  "true_potential": {
+    "constant": 0.0,
+    "quadratic": 0.5,
+    "quartic": 0.05
+  }
+}
