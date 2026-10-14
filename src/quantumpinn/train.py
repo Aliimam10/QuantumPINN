@@ -9,7 +9,15 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from .losses import LossComponents, LossWeights, TorchPotential, normalise_on_grid, pinn_loss
+from .losses import (
+    DeflationState,
+    LossComponents,
+    LossWeights,
+    TorchPotential,
+    pinn_loss,
+    project_lower_states,
+    wavefunction_and_second_derivative,
+)
 from .pinn import BoundStatePINN
 
 
@@ -39,6 +47,7 @@ class TrainingResult:
     model: BoundStatePINN
     x: Tensor
     wavefunction: Tensor
+    second_derivative: Tensor
     energy: float
     history: list[dict[str, float | str]]
     final_loss: dict[str, float]
@@ -57,6 +66,7 @@ def train_bound_state(
     *,
     config: TrainingConfig = TrainingConfig(),
     reference_states: tuple[Tensor, ...] = (),
+    deflation_states: tuple[DeflationState, ...] = (),
     hbar: float = 1.0,
     mass: float = 1.0,
     device: str | torch.device = "cpu",
@@ -77,6 +87,13 @@ def train_bound_state(
     ).reshape(-1, 1)
     x.requires_grad_(True)
     references = tuple(state.detach().to(device=device, dtype=dtype) for state in reference_states)
+    deflation_references = tuple(
+        DeflationState(
+            wavefunction=state.wavefunction.detach().to(device=device, dtype=dtype),
+            second_derivative=state.second_derivative.detach().to(device=device, dtype=dtype),
+        )
+        for state in deflation_states
+    )
     history: list[dict[str, float | str]] = []
 
     def objective() -> LossComponents:
@@ -86,6 +103,7 @@ def train_bound_state(
             potential_fn,
             weights=config.loss_weights,
             reference_states=references,
+            deflation_states=deflation_references,
             hbar=hbar,
             mass=mass,
         )
@@ -124,13 +142,24 @@ def train_bound_state(
         lbfgs.step(closure)
 
     final_components = objective()
+    raw_wavefunction, raw_second_derivative = wavefunction_and_second_derivative(model, x)
+    wavefunction, second_derivative, _ = project_lower_states(
+        raw_wavefunction,
+        raw_second_derivative,
+        x,
+        deflation_references,
+    )
+    norm = torch.trapezoid(wavefunction[:, 0].square(), x[:, 0])
+    amplitude = torch.sqrt(torch.clamp_min(norm, torch.finfo(x.dtype).eps))
     with torch.no_grad():
-        wavefunction = normalise_on_grid(model(x), x).detach().cpu()
+        wavefunction = (wavefunction / amplitude).detach().cpu()
+        second_derivative = (second_derivative / amplitude).detach().cpu()
         energy = float(model.energy.detach().cpu())
     return TrainingResult(
         model=model,
         x=x.detach().cpu(),
         wavefunction=wavefunction,
+        second_derivative=second_derivative,
         energy=energy,
         history=history,
         final_loss=final_components.detached(),

@@ -1,0 +1,36 @@
+{
+  "adam_epochs": 2000,
+  "collocation_points": 256,
+  "double_well": {
+    "domain": [
+      -4.0,
+      4.0
+    ],
+    "scale": 1.0,
+    "separation": 1.5
+  },
+  "double_well_reference_points": 4000,
+  "finite_difference_points": 512,
+  "hidden_layers": [
+    64,
+    64,
+    64
+  ],
+  "lbfgs_steps": 200,
+  "numpy_version": "2.5.4",
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "systems": [
+    "well",
+    "oscillator",
+    "double_well"
+  ],
+  "torch_version": "2.14.1",
+  "units": {
+    "hbar": 1.0,
+    "mass": 1.0
+  }
+}

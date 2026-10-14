@@ -12,14 +12,22 @@ except ModuleNotFoundError:  # The numerical baseline does not require the ML ex
 class PINNTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
-        from quantumpinn.losses import LossWeights, normalise_on_grid, pinn_loss
+        from quantumpinn.losses import (
+            DeflationState,
+            LossWeights,
+            normalise_on_grid,
+            pinn_loss,
+            project_lower_states,
+        )
         from quantumpinn.pinn import BoundStatePINN
         from quantumpinn.train import TrainingConfig, train_bound_state
 
         cls.BoundStatePINN = BoundStatePINN
+        cls.DeflationState = DeflationState
         cls.LossWeights = LossWeights
         cls.normalise_on_grid = staticmethod(normalise_on_grid)
         cls.pinn_loss = staticmethod(pinn_loss)
+        cls.project_lower_states = staticmethod(project_lower_states)
         cls.TrainingConfig = TrainingConfig
         cls.train_bound_state = staticmethod(train_bound_state)
 
@@ -77,6 +85,26 @@ class PINNTests(unittest.TestCase):
             reference_states=(reference,),
         )
         self.assertGreater(float(loss.orthogonality.detach()), 0.0)
+
+    def test_deflation_projects_out_a_lower_state(self) -> None:
+        x = self.make_grid()
+        reference = torch.sin(torch.pi * x)
+        reference_second = -(torch.pi**2) * reference
+        candidate = reference + 0.25 * torch.sin(2.0 * torch.pi * x)
+        candidate_second = reference_second - torch.pi**2 * torch.sin(2.0 * torch.pi * x)
+        projected, _, _ = self.project_lower_states(
+            candidate,
+            candidate_second,
+            x,
+            (
+                self.DeflationState(
+                    wavefunction=reference,
+                    second_derivative=reference_second,
+                ),
+            ),
+        )
+        overlap = torch.trapezoid(projected[:, 0] * reference[:, 0], x[:, 0])
+        self.assertLess(abs(float(overlap.detach())), 1e-12)
 
     def test_short_training_recovers_square_well_ground_energy(self) -> None:
         torch.manual_seed(0)

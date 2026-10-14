@@ -28,15 +28,18 @@ The numerical benchmark and forward-PINN layers are implemented:
 - a finite-difference Dirichlet eigensolver;
 - analytical infinite-well and harmonic-oscillator reference states;
 - sign-invariant wavefunction and energy error metrics;
-- forward-solver tests and a benchmark script.
+- forward-solver tests and a benchmark script;
 - a smooth PyTorch wavefunction network with a trainable energy;
 - exact finite-domain Dirichlet boundary conditions;
 - Schrödinger residual, normalisation, and excited-state orthogonality losses;
 - grid-normalised physics residuals that prevent collapse to the trivial zero state;
+- differentiable state deflation that prevents excited states collapsing to lower modes;
 - deterministic Adam plus L-BFGS training and a forward-PINN experiment script.
 
-PyTorch remains an optional dependency so the numerical reference solver can be used
-without installing the ML stack. The inverse-potential stage is the next milestone.
+The forward evaluation suite is also implemented, including three-seed comparisons,
+machine-readable result tables, and figures. PyTorch remains optional so the numerical
+reference solver can be used without installing the ML stack. The inverse-potential
+stage is the next milestone.
 
 ## Quick start
 
@@ -61,13 +64,44 @@ python experiments/train_forward_pinn.py --system well --state 0
 python experiments/train_forward_pinn.py --system oscillator --state 0
 ```
 
+Run the complete forward comparison across three seeds:
+
+```bash
+python -m pip install -e '.[ml,plot]'
+python experiments/evaluate_forward.py --seeds 0 1 2
+```
+
+## Forward benchmark results
+
+The finite-difference solver is consistently accurate and much faster for these simple
+forward problems. Successful PINN runs reach very small errors for the square well and
+sub-percent errors for the oscillator and double well, but the three-seed study also
+shows optimiser sensitivity. In particular, one double-well ground-state run converged
+to the next even eigenstate, and one second-excited square-well run was less accurate.
+Those failures remain in the aggregate tables rather than being discarded.
+
+For representative seed 0, the double-well reference splitting is `0.04182` and the
+PINN splitting is `0.04040`. Full per-run, aggregate, and tunnelling tables are in
+[`results/forward`](results/forward).
+
+![Forward energy errors across three seeds](figures/forward_energy_errors.png)
+
+![Double-well tunnelling energy splitting](figures/double_well_tunnelling.png)
+
+Additional state-by-state figures:
+
+- [infinite square well](figures/infinite_well_states.png)
+- [harmonic oscillator](figures/harmonic_oscillator_states.png)
+- [symmetric double well](figures/double_well_states.png)
+
 ## Repository layout
 
 ```text
-src/quantumpinn/       numerical and, later, PINN library code
+src/quantumpinn/       numerical, PINN, training, and evaluation code
 experiments/           reproducible experiment entry points
 tests/                 numerical and scientific regression tests
-figures/               generated plots (not source data)
+figures/               generated benchmark plots
+results/               per-run and aggregate benchmark tables
 PROJECT_SCOPE.md       scope, milestones, and success criteria
 ```
 
